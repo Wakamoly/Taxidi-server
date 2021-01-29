@@ -2,19 +2,29 @@
 	class DbOperations{
 		private $con; 
 		function __construct(){
-			require_once dirname(__FILE__).'/../DbConnect.php';
+			require_once dirname(__FILE__).'/../../DbConnect.php';
 			$db = new DbConnect();
 			$this->con = $db->connect();
 		}
+
+		public function isNotUserExist($username, $emailAddress) {
+			$stmt = $this->con->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
+			$stmt->bind_param("ss", $username, $emailAddress);
+			$stmt->execute(); 
+			$stmt->store_result();
+			$result = $stmt->num_rows();
+			$stmt->close();
+			return $result = 0; 
+		}
 		
-		public function updateUser($username, $nickname, $email, $bio, $twitch, $mixer, $psn, $xbox, $steam, $youtube, $instagram, $clantag, $discord_server){
+		/*public function updateUser($username, $nickname, $email, $bio, $twitch, $mixer, $psn, $xbox, $steam, $youtube, $instagram, $clantag, $discord_server){
 		    
 		    $stmt2 = $this->con->prepare("SELECT username, email FROM users WHERE username=? LIMIT 1");
-        $stmt2->bind_param("s",$username);
-        $stmt2->execute();
-        $stmt2->bind_result($matched_user, $user_email);
-        $stmt2->fetch();
-        $stmt2->close();
+			$stmt2->bind_param("s",$username);
+			$stmt2->execute();
+			$stmt2->bind_result($matched_user, $user_email);
+			$stmt2->fetch();
+			$stmt2->close();
         
         	if($matched_user == $username) {
                 if (strpos($email, '@') !== false) {
@@ -75,9 +85,9 @@
         	}else{
         		return 6;
         	}
-		}
+		}*/
 		
-		public function updateUserPass($username, $new_password, $old_password_1, $old_password_2){
+		/* public function updateUserPass($username, $new_password, $old_password_1, $old_password_2){
                 
         	$new_password = strip_tags($new_password);
         	$old_password_1 = strip_tags($old_password_1);
@@ -111,10 +121,113 @@
     			return 4;
     		}
                 
-		}    
+		}     */
+
+		public function createUser(
+            $signInAs,
+            $username,
+            $emailAddress,
+            $password,
+            $authorityType,
+            $type,
+            $companyName,
+            $streetAddress,
+            $city,
+            $state,
+            $zipCode,
+            $country,
+            $companyPhone,
+            $firstName,
+            $lastName,
+            $personalPhone
+        ) {
+			if($username != ""){
+				if( $email != ""){ 
+					if($password != ""){
+						
+						if(!empty($_SERVER['HTTP_CLIENT_IP'])){
+						  $ip=$_SERVER['HTTP_CLIENT_IP'];
+						//Is it a proxy address
+						}elseif(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+						  $ip=$_SERVER['HTTP_X_FORWARDED_FOR'];
+						}else{
+						  $ip=$_SERVER['REMOTE_ADDR'];
+						}
+						
+			/* $stmt = $this->con->prepare("SELECT ip FROM banned_ips WHERE ip = ? AND active = 'yes' LIMIT 1");
+			$stmt->bind_param("s", $ip);
+			$stmt->execute(); 
+			$stmt->store_result();
+			$banned_ip = $stmt->num_rows;
+			if($banned_ip > 0){
+				error_log($ip." tried to register a new user with username:".$username);
+				return 6;
+			} */
+						
+			//nickname
+			$username = strip_tags($username); // remove html tags
+			$username = str_replace(' ', "_", $username); // remove spaces
+			//email
+			$email = strip_tags($email); // remove html tags
+			$email = str_replace(' ', '', $email); // remove spaces
+			$email = ucfirst(strtolower($email)); //uppercase first
+			//password
+			$password = strip_tags($password); // remove html tags
+			
+			$password = trim(password_hash($password, PASSWORD_DEFAULT)); // HASH password before sending to database
+					// generate username
+			$usernamelower = strtolower($username);
+			
+			// Profile picture assignment
+			$rand = rand(1, 2); //random number between 1 and 2
+
+			$date = date("Y-m-d"); // gets current date
+
+			if($rand == 1)
+			$profile_pic = "assets/images/profile_pics/defaults/sabotblack.gif";
+			else if($rand == 2)
+			$profile_pic = "assets/images/profile_pics/defaults/sabotwhite.gif";
+			
+			$stmt2 = $this->con->prepare("INSERT INTO `email_list` (`id`, `username`, `email`, `removed`, `last_notified`) VALUES (NULL, ?, ?, 'no', CURRENT_TIMESTAMP)");
+			$stmt2->bind_param("ss",$username,$email);
+			$stmt2->execute();
+			$stmt2->close();
+
+			$stmt = $this->con->prepare("INSERT INTO users (`id`, `nickname`, `username`, `description`, `verified`, `email`, `password`, `signup_date`, `profile_pic`, `cover_pic`, `num_posts`, `num_likes`, `user_closed`, `user_banned`, `following_array`,`followers_array`, `blocked_array`, `followings`, `followers`, `friend_array`, `games_followed`, `twitch`, `mixer`, `psn`, `xbox`, `steam`, `discord`, `user_level`, `last_ip`, `last_online`, `noti_token`) VALUES (NULL, ?, ?,'','', ?, ?, ?, ?,'', '0', '0', 'no','no', ',', ',', ',', '0', '0', ',', ',', '', '', '', '', '', '',  '0', '0', '$date', '')");
+			$stmt->bind_param("ssssss",
+			$username,
+			$usernamelower,
+			$email,
+			$password,
+			$date,
+			$profile_pic);
+			if($stmt->execute()){
+				$stmt->close();
+				if($howdidyoufindus!=null&&$howdidyoufindus!==""){
+					$stmt2 = $this->con->prepare("INSERT INTO `user_howdidyoufindus` (`id`, `username`, `text`, `date`) VALUES (NULL, ?, ?, CURRENT_TIMESTAMP)");
+					$stmt2->bind_param("ss",$username,$howdidyoufindus);
+					$stmt2->execute();
+					$stmt2->close();
+				}
+				return 1;
+			}else{
+				return 2;
+				return false;
+			}
+		}else{
+			return 3;
+			return false;
+		}}else{
+			return 4;
+			return false;
+		}}else{
+			return 5;
+			return false;
+		}
+		}
 		
 
-		public function createUser($username, $email, $password, $howdidyoufindus){
+		public function createUserOLD($username, $email, $password, $howdidyoufindus){
 
 			if($this->isUserExist($username,$email)){
 				return 0; 
