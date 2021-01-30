@@ -220,7 +220,7 @@ class DbOperations {
                     $ip = $_SERVER['REMOTE_ADDR'];
                 }
 
-                $stmt9 = $this->con->prepare("UPDATE `users` SET `last_ip` = ?, CURRENT_TIMESTAMP WHERE `users`.`username` = ? LIMIT 1");
+                $stmt9 = $this->con->prepare("UPDATE `users` SET `last_ip` = ?, `last_online` = CURRENT_TIMESTAMP WHERE `users`.`username` = ? LIMIT 1");
                 $stmt9->bind_param("ss", $ip, $username1);
                 $stmt9->execute();
                 $stmt9->close();
@@ -235,7 +235,7 @@ class DbOperations {
                     $reopen_account->execute();
                     $reopen_account->close();
                 }
-                return getUserByUsername($username1);
+                return $this->getUserByUsername($username1);
             } else {
                 error_log("DbOperations.userLogin -> Validate check failed!");
                 return false;
@@ -247,9 +247,9 @@ class DbOperations {
 	}
     
     // Login function to return array of needed values for the user
-    public function getUserByUsername($username) {
+    private function getUserByUsername($username) {
         // TODO: Check if user is banned
-        $stmt = $this->con->prepare("SELECT `id`, `username`,` type` FROM users WHERE username = ? LIMIT 1");
+        $stmt = $this->con->prepare("SELECT `id`, `username`, `type` FROM users WHERE username = ? LIMIT 1");
         $stmt->bind_param("s", $username);
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($user_id, $username2, $type);

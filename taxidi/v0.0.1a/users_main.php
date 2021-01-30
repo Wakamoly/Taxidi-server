@@ -154,7 +154,7 @@ $app->get('/login', function () use ($app){
     if($db->isUserExist($emailAddress)){
         $result = $db->userLogin($emailAddress, $password);
 
-        if($result){
+        if($result != false){
 			$response['error'] = false;
             $response['code'] = "0001";
             $response['result'] = $result;
