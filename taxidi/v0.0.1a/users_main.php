@@ -38,6 +38,7 @@ $user_id = NULL;
     }
 });
  
+// Register to Taxidi
  $app->post('/register', function () use ($app){
 
     //Verifying required parameters
@@ -72,7 +73,7 @@ $user_id = NULL;
     $city = $app->request()->post('city');
     $state = $app->request()->post('state');
     $zipCode = $app->request()->post('zipCode');
-    $country = $app->request()->post('userncountryame');
+    $country = $app->request()->post('country');
     $companyPhone = $app->request()->post('companyPhone');
     $firstName = $app->request()->post('firstName');
     $lastName = $app->request()->post('lastName');
@@ -133,6 +134,48 @@ $user_id = NULL;
     }
     echoResponse(200,$response);
 });
+
+// Login to Taxidi
+$app->get('/login', function () use ($app){
+    
+    verifyRequiredParams(array('email', 'password'));
+    
+    $password = $app->request()->get('password');
+    $emailAddress = $app->request()->get('email');
+    
+    // FCM token
+    // TODO: Make required for function?
+    $headers = getallheaders();
+    $token = $headers['Authorization'];
+    
+    $response = array();
+
+    $db = new DbOperations();
+    if($db->isUserExist($emailAddress)){
+        $result = $db->userLogin($emailAddress, $password);
+
+        if($result){
+			$response['error'] = false;
+            $response['code'] = "0001";
+            $response['result'] = $result;
+            $username = $result["username"];
+            $user_id = $result["user_id"];
+            if(!$db->createFCMRow($username, $user_id, $token, "")){
+                error_log("users_main.php/login.createFCMRow error -> db->createFCMRow($username, $user_id, $token, blank)");
+            }
+		}else{
+			$response['error'] = true;
+            $response['code'] = "1010";
+            $response['result'] = null;
+        }
+
+    } else {
+        $response['error'] = true; 
+        $response['code'] = "1009";
+        $response['result'] = null;
+    }
+    echoResponse(200,$response);
+});
  
 //This will store the FCM token to the database
 $app->post('/storefcmtoken', function () use ($app) {
@@ -156,12 +199,6 @@ $app->post('/storefcmtoken', function () use ($app) {
 
     echoResponse(200, $response);
 });
- 
-/*
- * URL: /storegcmtoken/:id
- * Method: PUT
- * Parameters: tokeng
- * */
  
 //This will remove the FCM token from the database
 $app->post('/removefcmtoken', function () use ($app) {
