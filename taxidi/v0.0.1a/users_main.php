@@ -156,7 +156,7 @@ $app->get('/login', function () use ($app){
 
         if($result != false){
 			$response['error'] = false;
-            $response['code'] = "0001";
+            $response['code'] = "0002";
             $response['result'] = $result;
             $username = $result["username"];
             $user_id = $result["user_id"];

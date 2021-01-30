@@ -251,6 +251,8 @@ class DbOperations {
         // TODO: Check if user is banned
         $stmt = $this->con->prepare("SELECT `id`, `username`, `type` FROM users WHERE username = ? LIMIT 1");
         $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $stmt->store_result();
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($user_id, $username2, $type);
             $userArray = array();
@@ -260,6 +262,8 @@ class DbOperations {
             $stmt->close();
             return $userArray;
         } else {
+            $stmterr = $stmt->error;
+            error_log("getUserByUsername stmt failed -> $username ".$stmterr);
             $stmt->close();
             return false;
         }
