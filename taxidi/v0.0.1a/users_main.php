@@ -2,7 +2,7 @@
 require_once 'classes/DbOperations.php';
 //require_once 'classes/User.php';
 //require_once '../libs/gcm/gcm.php';
-require '../libs/Slim-2.x/Slim/Slim.php';
+require 'libs/Slim-2.x/Slim/Slim.php';
  
 \Slim\Slim::registerAutoloader();
  
