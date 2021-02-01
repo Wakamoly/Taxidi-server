@@ -160,9 +160,12 @@ $app->get('/login', function () use ($app){
             $response['result'] = $result;
             $username = $result["username"];
             $user_id = $result["user_id"];
-            if(!$db->createFCMRow($username, $user_id, $token, "")){
-                error_log("users_main.php/login.createFCMRow error -> db->createFCMRow($username, $user_id, $token, blank)");
+            if ($token != null && $token != "null") {
+                if(!$db->createFCMRow($username, $user_id, $token, "")){
+                    error_log("users_main.php/login.createFCMRow error -> db->createFCMRow($username, $user_id, $token, blank)");
+                }
             }
+            
 		}else{
 			$response['error'] = true;
             $response['code'] = "1010";
