@@ -108,95 +108,67 @@ $user_id = NULL;
     echoResponse(200,$response);
 });
 
-// Login to Taxidi
-$app->get('/login', function () use ($app){
+// Get Profile ID
+$app->get('/get_user_id', function () use ($app){
     
-    verifyRequiredParams(array('email', 'password'));
+    verifyRequiredParams(array('username'));
     
-    $password = $app->request()->get('password');
-    $emailAddress = $app->request()->get('email');
-    
-    // FCM token
-    // TODO: Make required for function?
+    $username = $app->request()->get('username');
+
     $headers = getallheaders();
     $token = $headers['Authorization'];
     
     $response = array();
 
-    $db = new DbOperations();
-    if($db->isUserExist($emailAddress)){
-        $result = $db->userLogin($emailAddress, $password);
+    $db = new UserOperations();
+    $result = $db->getUserID($username);
 
-        if($result != false){
-			$response['error'] = false;
-            $response['code'] = "0002";
+    if($result != false){
+        $result = $db->loadProfile($result);
+        if($result != false) {
+            $response['error'] = true;
+            $response['code'] = "0003";
             $response['result'] = $result;
-            $username = $result["username"];
-            $user_id = $result["user_id"];
-            if ($token != null && $token != "null") {
-                if(!$db->createFCMRow($username, $user_id, $token, "")){
-                    error_log("users_main.php/login.createFCMRow error -> db->createFCMRow($username, $user_id, $token, blank)");
-                }
-            }
-            
-		}else{
-			$response['error'] = true;
-            $response['code'] = "1010";
+        } else {
+            $response['error'] = true;
+            $response['code'] = "1012";
             $response['result'] = null;
         }
-
-    } else {
-        $response['error'] = true; 
-        $response['code'] = "1009";
+        
+    }else{
+        $response['error'] = true;
+        $response['code'] = "1011";
         $response['result'] = null;
     }
     echoResponse(200,$response);
 });
- 
-//This will store the FCM token to the database
-$app->post('/storefcmtoken', function () use ($app) {
-    verifyRequiredParams(array('token', 'username', 'user_id', 'old_token'));
 
-    $username = $app->request()->post('username');
-    $user_id = $app->request()->post('user_id');
-    $token = $app->request()->post('token');
-    $old_token = $app->request()->post('old_token');
-
-    $db = new Message();
-
-    $response = array();
-    if ($db->storeFCMToken($username, $user_id, $token, $old_token)) {
-        $response['error'] = false;
-        $response['message'] = "Token stored";
-    } else {
-        $response['error'] = true;
-        $response['message'] = "Could not store token";
-    }
-
-    echoResponse(200, $response);
-});
- 
-//This will remove the FCM token from the database
-$app->post('/removefcmtoken', function () use ($app) {
-    verifyRequiredParams(array('token', 'username', 'user_id'));
-
-    $username = $app->request()->post('username');
-    $user_id = $app->request()->post('user_id');
-    $token = $app->request()->post('token');
+// Load profile main bits
+$app->get('/load_profile', function () use ($app){
     
-    $db = new Message();
+    verifyRequiredParams(array('userID'));
+    
+    $userID = $app->request()->get('userID');
 
+    $headers = getallheaders();
+    $token = $headers['Authorization'];
+    
     $response = array();
-    if ($db->removeFCMToken($username, $user_id, $token)) {
-        $response['error'] = false;
-        $response['message'] = "Token removed";
+
+    $db = new UserOperations();
+    $result = $db->loadProfile($userID);
+
+    if($result != false) {
+        $response['error'] = true;
+        $response['code'] = "0003";
+        $response['result'] = $result;
     } else {
         $response['error'] = true;
-        $response['message'] = "Could not remove token";
+        $response['code'] = "1012";
+        $response['result'] = null;
     }
-    echoResponse(200, $response);
+    echoResponse(200,$response);
 });
-
  
  
 //Function to display the response in browser
