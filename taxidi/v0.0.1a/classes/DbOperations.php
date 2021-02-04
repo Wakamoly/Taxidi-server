@@ -61,10 +61,11 @@ class DbOperations {
 					$usernamelower = strtolower($username);
 					
                     // Profile picture assignment
-                    $rand = rand(1, 2); //random number between 1 and 2
+                    //$rand = rand(1, 2); //random number between 1 and 2
                     //$date = date("Y-m-d"); // gets current date
-                    if ($rand == 1) $profile_pic = "assets/images/profile_pics/defaults/sabotblack.gif";
-					else if ($rand == 2) $profile_pic = "assets/images/profile_pics/defaults/sabotwhite.gif";
+                    //if ($rand == 1) $profile_pic = "assets/images/profile_pics/defaults/sabotblack.gif";
+                    //else if ($rand == 2) $profile_pic = "assets/images/profile_pics/defaults/sabotwhite.gif";
+                    $profile_pic = "assets/images/profile_pics/defaults/taxidi/Taxidi_Logo.png";
                     
                     // Email list, probably won't be needed
                     /* $stmt2 = $this->con->prepare("INSERT INTO `email_list` (`id`, `username`, `email`, `removed`, `last_notified`) VALUES (NULL, ?, ?, 'no', CURRENT_TIMESTAMP)");

@@ -30,14 +30,14 @@ class UserOperations {
 
     public function loadProfile($userID) {
 
-        $stmt = $con->prepare("SELECT username FROM users WHERE id=? LIMIT 1");
+        $stmt = $this->con->prepare("SELECT username FROM users WHERE id=? LIMIT 1");
         $stmt->bind_param("i", $userID);
         $stmt->execute(); 
         $stmt->bind_result($username);
         $stmt->fetch();
         $stmt->close();
         
-        $stmt = $con->prepare("SELECT
+        $stmt = $this->con->prepare("SELECT
                 users.display_name,
                 users.description,
                 users.type,

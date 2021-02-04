@@ -1,5 +1,5 @@
 <?php
-require_once 'classes/DbOperations.php';
+require_once 'classes/UserOperations.php';
 //require_once 'classes/User.php';
 //require_once '../libs/gcm/gcm.php';
 require 'libs/Slim-2.x/Slim/Slim.php';
@@ -10,106 +10,9 @@ $app = new \Slim\Slim();
  
 // User id from db - Global Variable
 $user_id = NULL;
- 
-// Register to Taxidi
- $app->post('/register', function () use ($app){
-
-    //Verifying required parameters
-    verifyRequiredParams(array(
-        'signInAs',
-        'username',
-        'emailAddress', 
-        'password',
-        'authorityType', 
-        'type',
-        'companyName', 
-        'streetAddress', 
-        'city',
-        'state', 
-        'zipCode',
-        'country', 
-        'companyPhone', 
-        'firstName',
-        'lastName', 
-        'personalPhone'
-    ));
- 
-    //Getting request parameters
-    $signInAs = $app->request()->post('signInAs');
-    $username = $app->request()->post('username');
-    $emailAddress = $app->request()->post('emailAddress');
-    $password = $app->request()->post('password');
-    $authorityType = $app->request()->post('authorityType');
-    $type = $app->request()->post('type');
-    $companyName = $app->request()->post('companyName');
-    $streetAddress = $app->request()->post('streetAddress');
-    $city = $app->request()->post('city');
-    $state = $app->request()->post('state');
-    $zipCode = $app->request()->post('zipCode');
-    $country = $app->request()->post('country');
-    $companyPhone = $app->request()->post('companyPhone');
-    $firstName = $app->request()->post('firstName');
-    $lastName = $app->request()->post('lastName');
-    $personalPhone = $app->request()->post('personalPhone');
-    
-    $response = array();
-
-    $db = new DbOperations();
-    if($db->isNotUserExist($username, $emailAddress)){
-        $result = $db->createUser(
-            $signInAs,
-            $username,
-            $emailAddress,
-            $password,
-            $authorityType,
-            $type,
-            $companyName,
-            $streetAddress,
-            $city,
-            $state,
-            $zipCode,
-            $country,
-            $companyPhone,
-            $firstName,
-            $lastName,
-            $personalPhone
-        );
-
-        if($result == 1){
-			$response['error'] = false;
-            $response['code'] = "0001";
-		}elseif($result == 2){
-			$response['error'] = true; 
-			$response['code'] = "1001";
-		}elseif($result == 3){
-			$response['error'] = true; 
-			$response['code'] = "1002";
-		}elseif($result == 4){
-			$response['error'] = true; 
-			$response['code'] = "1003";
-		}elseif($result == 5){
-			$response['error'] = true; 
-			$response['code'] = "1004";
-		}elseif($result == 0){
-			$response['error'] = true; 
-			$response['code'] = "1005";			
-		}elseif($result == 6){
-			$response['error'] = true; 
-			$response['code'] = "1006";		
-		}elseif($result == 7){
-			$response['error'] = true; 
-			$response['code'] = "1007";
-		}
-
-    } else {
-        $response['error'] = true; 
-        $response['code'] = "1008";
-    }
-    echoResponse(200,$response);
-});
 
 // Get Profile ID
-$app->get('/get_user_id', function () use ($app){
+$app->get('/get_profile_by_username', function () use ($app){
     
     verifyRequiredParams(array('username'));
     
@@ -126,7 +29,7 @@ $app->get('/get_user_id', function () use ($app){
     if($result != false){
         $result = $db->loadProfile($result);
         if($result != false) {
-            $response['error'] = true;
+            $response['error'] = false;
             $response['code'] = "0003";
             $response['result'] = $result;
         } else {
@@ -159,7 +62,7 @@ $app->get('/load_profile', function () use ($app){
     $result = $db->loadProfile($userID);
 
     if($result != false) {
-        $response['error'] = true;
+        $response['error'] = false;
         $response['code'] = "0003";
         $response['result'] = $result;
     } else {
