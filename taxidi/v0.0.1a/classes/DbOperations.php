@@ -111,7 +111,7 @@ class DbOperations {
 								'0', 
 								'0')
 					");
-                    $stmt->bind_param("sssssss", $username, $usernamelower, $signInAs, $email, $ip, $password, $profile_pic);
+                    $stmt->bind_param("sssssss", $usernamelower, $username, $signInAs, $email, $ip, $password, $profile_pic);
                     if ($stmt->execute()) {
 						$userid = $stmt->insert_id;
 						$stmt->close();
