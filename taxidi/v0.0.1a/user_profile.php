@@ -72,6 +72,34 @@ $app->get('/load_profile', function () use ($app){
     }
     echoResponse(200,$response);
 });
+
+// Load user notifications
+$app->get('/load_notifications', function () use ($app){
+    
+    verifyRequiredParams(array('userID', 'last_id'));
+    
+    $userID = $app->request()->get('userID');
+    $last_id = $app->request()->get('last_id');
+
+    $headers = getallheaders();
+    $token = $headers['Authorization'];
+    
+    $response = array();
+
+    $db = new UserOperations();
+    $result = $db->loadNotifications($userID, $last_id, $token);
+
+    if (is_array($result)){
+        $response['error'] = false;
+        $response['code'] = "0004";
+        $response['result'] = $result;
+    } else {
+        $response['error'] = true;
+        $response['code'] = "$result";
+        $response['result'] = null;
+    }
+    echoResponse(200,$response);
+});
  
  
 //Function to display the response in browser
