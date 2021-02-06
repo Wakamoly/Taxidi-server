@@ -147,7 +147,10 @@ class Notifications {
             $stmt->store_result(); 
             $stmt->close();
             return true;
-        } else return false;
+        } else {
+            error_log("Notifications.userOnline error -> $userid, $token");
+            return false;
+        }
     }
     
 	

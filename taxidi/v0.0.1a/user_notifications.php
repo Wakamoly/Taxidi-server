@@ -5,10 +5,6 @@ require 'libs/Slim-2.x/Slim/Slim.php';
 \Slim\Slim::registerAutoloader();
  
 $app = new \Slim\Slim();
- 
-// User token from device - Global Variable
-$headers = getallheaders();
-$token = $headers['Authorization'];
 
 // Load user notifications
 $app->get('/load_notifications', function () use ($app){
@@ -17,6 +13,12 @@ $app->get('/load_notifications', function () use ($app){
     
     $userID = $app->request()->get('userID');
     $last_id = $app->request()->get('last_id');
+
+    $headers = getallheaders();
+    $token = $headers['Authorization'];
+
+    // Stupid shit quit working unless I put the "www." before sabotcommunity.com in the Constants file. Ugh.
+    //error_log("load_notifications -> token: $token");
     
     $response = array();
 
