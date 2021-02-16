@@ -161,23 +161,28 @@ $app->get('/login', function () use ($app){
  
 //This will store the FCM token to the database
 $app->post('/storefcmtoken', function () use ($app) {
-    verifyRequiredParams(array('token', 'username', 'user_id', 'old_token'));
+    verifyRequiredParams(array('fcm_token', 'username', 'user_id', 'old_token'));
 
     $username = $app->request()->post('username');
     $user_id = $app->request()->post('user_id');
-    $token = $app->request()->post('token');
+    $fcmtoken = $app->request()->post('fcm_token');
     $old_token = $app->request()->post('old_token');
 
-    $db = new Message();
+    $headers = getallheaders();
+    $auth_token = $headers['Authorization'];
+
+    $db = new DbOperations();
 
     $response = array();
-    if ($db->storeFCMToken($username, $user_id, $token, $old_token)) {
+    $result = $db->createFCMRow($username, $user_id, $fcmtoken, $old_token, $auth_token);
+
+    // Generic response
+    if ($result < 1000){
         $response['error'] = false;
-        $response['message'] = "Token stored";
     } else {
         $response['error'] = true;
-        $response['message'] = "Could not store token";
     }
+    $response['code'] = str_pad((string)$result, 4, '0', STR_PAD_LEFT);
 
     echoResponse(200, $response);
 });

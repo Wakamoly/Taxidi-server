@@ -39,7 +39,6 @@ class UserOperations {
     }
 
     public function loadProfile($userID) {
-
         $stmt = $this->con->prepare("SELECT username FROM users WHERE id=? LIMIT 1");
         $stmt->bind_param("i", $userID);
         $stmt->execute(); 
@@ -112,93 +111,6 @@ class UserOperations {
             return false;
         }
         
-    }
-
-    public function loadNotifications($userID, $last_id, $token){
-        if ($token == null || $token == ""){
-            return "1014";
-        } else if ($last_id == null || $last_id == ""){
-            return "1015";
-        } else if ($userID == null || $userID == ""){
-            return "1016";
-        } else {
-            if ($this->userOnline($userID, $token)) {
-                $username = $this->getUsername($userID);
-                if ($username != "" && $username != null) {
-                    // add users.blocked_array?
-                    $stmt = $this->con->prepare("SELECT	
-                        notifications.id,
-                        notifications.user_to,
-                        notifications.user_from,
-                        notifications.title,
-                        notifications.message,
-                        notifications.type,
-                        notifications.link,
-                        notifications.datetime,
-                        notifications.opened,
-                        notifications.viewed,
-                        notifications.deleted,
-                        users.id,
-                        users.profile_pic,
-                        users.display_name,
-                        users.last_online
-                    FROM
-                        notifications
-                    LEFT JOIN
-                        users
-                    ON
-                        notifications.user_from = users.username
-                    WHERE
-                        notifications.user_to = ?
-                    AND
-                        users.user_banned = 'no'
-                    AND
-                        users.user_closed = 'no'
-                    AND
-                        notifications.id > ?
-                    ORDER BY
-                        notifications.id DESC"); 
-        
-                    $stmt->bind_param("si",$username, $last_id);
-                    $stmt->execute();
-                    $stmt->bind_result($id, $user_to, $user_from, $title, $message, $type, $link, $datetime, $opened, $viewed, $deleted, $user_id, $profile_pic, $display_name, $last_online);
-                    $notifications = array(); 
-                    while($stmt->fetch()){
-                        /* $blocked = "";
-                        $user_array_explode = explode(",", $blocked_array);
-                        foreach ($user_array_explode as $i) {
-                            if($i == $username && $i != "") {
-                                $blocked = "yes";
-                            }
-                        }
-                        if($blocked == "yes")continue; */
-                        
-                        $temp = array();
-                        $temp['id'] = $id;
-                        $temp['user_from'] = $user_from; 
-                        $temp['title'] = $title; 
-                        $temp['message'] = $message; 
-                        $temp['type'] = $type; 
-                        $temp['link'] = $link; 
-                        $temp['datetime'] = $datetime; 
-                        $temp['opened'] = $opened;
-                        $temp['viewed'] = $viewed;
-                        $temp['user_id'] = $user_id;
-                        $temp['profile_pic'] = $profile_pic;
-                        $temp['display_name'] = $display_name;
-                        $temp['last_online'] = $last_online;
-                        $temp['deleted'] = $deleted;
-                        array_push($notifications, $temp);
-                    }
-                    $stmt->close();
-                    return $notifications;
-                } else {
-                    return "1018";
-                }
-            } else {
-                return "1017";
-            }
-        }
     }
 		
     public function userOnline($userid, $token){

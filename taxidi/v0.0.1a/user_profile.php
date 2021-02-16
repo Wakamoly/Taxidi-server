@@ -70,6 +70,9 @@ $app->get('/load_profile', function () use ($app){
         $response['code'] = "1012";
         $response['result'] = null;
     }
+
+    // TODO User first time looking at profile, verify them and send a notification that they've been verified
+
     echoResponse(200,$response);
 });
 

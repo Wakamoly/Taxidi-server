@@ -271,7 +271,10 @@ class DbOperations {
 	}
     
     //Store FCM token in general FCM key table
-    public function createFCMRow($username, $user_id, $token, $old_token){
+    public function createFCMRow($username, $user_id, $token, $old_token, $auth_token){
+        if (!$this->userOnline($user_id, $auth_token)) {
+            return 1017;
+        }
         if ($token != "") {
             if ($old_token != ""){
                 error_log("(DbOperations.createFCMRow) Updating FCM Row, username:$username, newToken:$token, oldToken:$old_token");
@@ -303,11 +306,12 @@ class DbOperations {
                             `user_fcm_tokens`.`username` = ?
                         AND
                             `user_fcm_tokens`.`token` = ? LIMIT 1");
-                    $stmt->bind_param("sss",$token,$username,$old_token);
+                    $stmt->bind_param("sss", $token, $username, $old_token);
                     if ($stmt->execute()){
                         $stmt->close();
-                        return true;
+                        return 0005;
                     }
+                    return 1000;
                 }else{
                     //insert
                     $stmt->close();
@@ -319,11 +323,12 @@ class DbOperations {
                         `active`, 
                         `last_update`)
                         VALUES (NULL, ?, ?, ?, 1, CURRENT_TIMESTAMP)");
-                    $stmt->bind_param("sss",$username, $user_id, $token);
+                    $stmt->bind_param("sss", $username, $user_id, $token);
                     if ($stmt->execute()){
                         $stmt->close();
-                        return true;
+                        return 0005;
                     }
+                    return 1000;
                 }
             }else{
                 $stmt = $this->con->prepare("SELECT 
@@ -356,8 +361,9 @@ class DbOperations {
                     $stmt->bind_param("ss",$username,$token);
                     if ($stmt->execute()){
                         $stmt->close();
-                        return true;
+                        return 0005;
                     }
+                    return 1000;
                 }else{
                     //insert
                     $stmt->close();
@@ -372,15 +378,17 @@ class DbOperations {
                     $stmt->bind_param("sss",$username, $user_id, $token);
                     if ($stmt->execute()){
                         $stmt->close();
-                        return true;
+                        return 0005;
                     }
+                    return 1000;
                 }
             }
         } else {
             error_log("createFCMRow token empty -> createFCMRow($username, $user_id, $token, $old_token)");
+            return 1019;
         }
         
-        return false;
+        return 1000;
     }
 
     // Remove FCM token in general FCM key table
@@ -453,6 +461,31 @@ class DbOperations {
             return $token;
         }
 
+    }
+		
+    public function userOnline($userid, $token){
+        $stmt = $this->con->prepare("SELECT id FROM user_auth_tokens WHERE `user_id` = ? AND `token` = ? LIMIT 1");
+        $stmt->bind_param("is", $userid, $token);
+        $stmt->execute(); 
+        $stmt->store_result(); 
+        if($stmt->num_rows > 0){
+            $stmt->close();
+            $date = date("Y-m-d H:i:s");
+                if(!empty($_SERVER['HTTP_CLIENT_IP'])){
+                        $ip=$_SERVER['HTTP_CLIENT_IP'];
+                    //Is it a proxy address
+                    }elseif(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+                        $ip=$_SERVER['HTTP_X_FORWARDED_FOR'];
+                    }else{
+                        $ip=$_SERVER['REMOTE_ADDR'];
+                    }
+            $stmt = $this->con->prepare("UPDATE `users` SET `last_ip` = '$ip', `last_online` = '$date' WHERE `users`.`id` = ?");
+            $stmt->bind_param("i", $userid);
+            $stmt->execute(); 
+            $stmt->store_result(); 
+            $stmt->close();
+            return true;
+        } else return false;
     }
 	
 }
