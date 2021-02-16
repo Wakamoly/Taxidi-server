@@ -276,7 +276,7 @@ class DbOperations {
             return 1017;
         }
         if ($token != "") {
-            if ($old_token != ""){
+            if ($old_token != "" && $old_token != "null"){
                 error_log("(DbOperations.createFCMRow) Updating FCM Row, username:$username, newToken:$token, oldToken:$old_token");
                 $stmt = $this->con->prepare("SELECT 
                     `user_fcm_tokens`.`id`
