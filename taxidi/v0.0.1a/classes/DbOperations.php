@@ -425,6 +425,35 @@ class DbOperations {
     			}
         return false;
     }
+
+    public function generateAuthToken($username, $user_id) {
+	    require_once __DIR__ . '/../libs/random_compat/random_compat-2.0.18/lib/random.php';
+        $token = base64_encode(random_bytes(64));
+        $token = strtr($token, '+/', '-_');
+
+        $stmt = $this->con->prepare(
+            "INSERT INTO `user_auth_tokens` (
+                `id`, 
+                `user_id`, 
+                `username`, 
+                `token`, 
+                `active`, 
+                `last_update`
+                ) VALUES (
+                    NULL, 
+                    ?, 
+                    ?, 
+                    ?, 
+                    '1', 
+                    CURRENT_TIMESTAMP
+                    ) ON DUPLICATE KEY UPDATE `token` = ?, `last_update` = CURRENT_TIMESTAMP");
+        $stmt->bind_param("isss",$user_id, $username, $token, $token);
+        if ($stmt->execute()){
+            $stmt->close();
+            return $token;
+        }
+
+    }
 	
 }
 

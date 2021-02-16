@@ -202,7 +202,7 @@ class UserOperations {
     }
 		
     public function userOnline($userid, $token){
-        $stmt = $this->con->prepare("SELECT id FROM user_fcm_tokens WHERE `user_id` = ? AND `token` = ? LIMIT 1");
+        $stmt = $this->con->prepare("SELECT id FROM user_auth_tokens WHERE `user_id` = ? AND `token` = ? LIMIT 1");
         $stmt->bind_param("is", $userid, $token);
         $stmt->execute(); 
         $stmt->store_result(); 

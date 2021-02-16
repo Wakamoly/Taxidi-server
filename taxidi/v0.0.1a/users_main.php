@@ -108,6 +108,16 @@ $user_id = NULL;
     echoResponse(200,$response);
 });
 
+$app->post('/upload_fcm_token', function () use ($app){
+
+    if ($token != null && $token != "null") {
+        if(!$db->createFCMRow($username, $user_id, $token, "")){
+            error_log("users_main.php/login.createFCMRow error -> db->createFCMRow($username, $user_id, $token, blank)");
+        }
+    }
+
+});
+
 // Login to Taxidi
 $app->get('/login', function () use ($app){
     
@@ -116,10 +126,9 @@ $app->get('/login', function () use ($app){
     $password = $app->request()->get('password');
     $emailAddress = $app->request()->get('email');
     
-    // FCM token
-    // TODO: Make required for function?
-    $headers = getallheaders();
-    $token = $headers['Authorization'];
+    // Removing this functionality for better practice of generating a key, then sending to the user's device
+    //$headers = getallheaders();
+    //$token = $headers['Authorization'];
     
     $response = array();
 
@@ -130,14 +139,11 @@ $app->get('/login', function () use ($app){
         if($result != false){
 			$response['error'] = false;
             $response['code'] = "0002";
-            $response['result'] = $result;
             $username = $result["username"];
             $user_id = $result["user_id"];
-            if ($token != null && $token != "null") {
-                if(!$db->createFCMRow($username, $user_id, $token, "")){
-                    error_log("users_main.php/login.createFCMRow error -> db->createFCMRow($username, $user_id, $token, blank)");
-                }
-            }
+            $result['auth_token'] = $db->generateAuthToken($username, $user_id);
+            error_log("Login token -> " . $result['auth_token']);
+            $response['result'] = $result;
             
 		}else{
 			$response['error'] = true;
