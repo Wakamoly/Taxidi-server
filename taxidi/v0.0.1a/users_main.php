@@ -195,15 +195,13 @@ $app->post('/removefcmtoken', function () use ($app) {
     $user_id = $app->request()->post('user_id');
     $token = $app->request()->post('token');
     
-    $db = new Message();
+    $db = new DbOperations();
 
     $response = array();
     if ($db->removeFCMToken($username, $user_id, $token)) {
         $response['error'] = false;
-        $response['message'] = "Token removed";
     } else {
         $response['error'] = true;
-        $response['message'] = "Could not remove token";
     }
     echoResponse(200, $response);
 });

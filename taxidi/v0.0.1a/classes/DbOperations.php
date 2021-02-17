@@ -412,8 +412,7 @@ class DbOperations {
     			if($stmt->num_rows > 0){
     			    //update
                     $stmt->bind_result($unit_id);
-                    //^ Doesn't work
-    			    //error_log("UNIT ID: ".$unit_id);
+                    $stmt->fetch();
     		        $stmt->close();
     		        
     			    $stmt = $this->con->prepare(
@@ -422,10 +421,8 @@ class DbOperations {
     			      		`active` = 0,
     			    		`last_update` = CURRENT_TIMESTAMP
     			        WHERE 
-                    		`user_fcm_tokens`.`username` = ?
-						AND
-							`user_fcm_tokens`.`token` = ?");
-                    $stmt->bind_param("ss",$username,$token);
+                    		`user_fcm_tokens`.`id` = ?");
+                    $stmt->bind_param("s",$unit_id);
                     if ($stmt->execute()){
                         $stmt->close();
                         return true;
@@ -489,138 +486,3 @@ class DbOperations {
     }
 	
 }
-
-
-	
-    /* public function getUserByEmail($email) {
-        $stmt = $this->con->prepare("SELECT id, nickname, username, email, profile_pic, following_array, games_followed, friend_array, blocked_array FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute(); // Execute the prepared statement
-        $stmt->store_result(); // Store the prepared statement for later checking
-        // Check to make sure if any data is returned
-        if ($stmt->num_rows > 0) {
-            // Create and append variables to the appropriate columns
-            $stmt->bind_result($id, $nickname, $username, $email2, $profile_pic, $users_followed, $games_followed, $friend_array, $blocked_array);
-            // Create a while loop
-            while ($stmt->fetch()) {
-                $userArray = array('id' => $id, 'nickname' => $nickname, 'username' => $username, 'email' => $email2, 'profile_pic' => $profile_pic, 'users_followed' => $users_followed, 'games_followed' => $games_followed, 'users_friends' => $friend_array, 'blocked_array' => $blocked_array);
-                return $userArray;
-            }
-        } else {
-            return false;
-        }
-    } */
-
-
-/*public function updateUser($username, $nickname, $email, $bio, $twitch, $mixer, $psn, $xbox, $steam, $youtube, $instagram, $clantag, $discord_server){
-      
-      $stmt2 = $this->con->prepare("SELECT username, email FROM users WHERE username=? LIMIT 1");
-    $stmt2->bind_param("s",$username);
-    $stmt2->execute();
-    $stmt2->bind_result($matched_user, $user_email);
-    $stmt2->fetch();
-    $stmt2->close();
-        
-        	if($matched_user == $username) {
-                if (strpos($email, '@') !== false) {
-                    if(strlen($nickname) <= 3) {
-    		return 7;
-    	}else{
-                	    $stmt = $this->con->prepare("SELECT email FROM users WHERE email = ? LIMIT 1");
-            			$stmt->bind_param("s", $email);
-            			$stmt->execute(); 
-            			$stmt->store_result(); 
-            			if($stmt->num_rows == 0||$user_email==$email){
-            			    $stmt->close();
-            			    
-                    		$bio = strip_tags($bio); //removes html tags
-            	        	
-            	        	$email = strip_tags($email); //removes html tags
-            	        	$email = str_replace('\r\n', "", $email);
-            	        	
-            	        	//error_log($discord." ".$discordpos);
-                            
-                            if (strpos($mixer, 'mixer.com') !== false&&($mixerpos = strrpos($mixer, "/")) !== FALSE) { 
-                                $mixer = substr($mixer, $mixerpos+1); 
-                            }
-                            if ((strpos($twitch, 'twitch.tv') !== false || strpos($twitch, 'twitch.com') !== false)&&($twitchpos = strrpos($twitch, "/")) !== FALSE) { 
-                                $twitch = substr($twitch, $twitchpos+1); 
-                            }
-                            if ((strpos($youtube, 'youtube.com') !== false||strpos($youtube, 'youtube.com') !== false)&&($youtubepos = strrpos($youtube, "/")) !== FALSE) { 
-                                $youtube = substr($youtube, $youtubepos+1); 
-                            }
-                            if (strpos($discord_server, 'discord.gg') !== false&&($discordserverpos = strrpos($discord_server, "/")) !== FALSE) { 
-                                $discord_server = substr($discord_server, $discordserverpos+1); 
-                            }
-                            if (strpos($instagram, 'instagram.com') !== false&&($instagrampos = strrpos($instagram, "/")) !== FALSE) { 
-                                $instagram = substr($instagram, $instagrampos+1); 
-                            }
-            	        	//error_log($discord." ".$discordpos);
-            	        	
-            	        	$twitch = str_replace('\r\n', "%20", $twitch);
-            	        	$mixer = str_replace('\r\n', "%20", $mixer);
-            	        	$psn = str_replace('\r\n', "%20", $psn);
-            	        	$xbox = str_replace('\r\n', "%20", $xbox);
-            	        	$steam = str_replace('\r\n', "%20", $steam);
-            	        	$instagram = str_replace('\r\n', "%20", $instagram);
-            	        	$youtube = str_replace('\r\n', "%20", $youtube);
-            	        	$discord_server = str_replace('\r\n', "%20", $discord_server);
-            	        	
-            	        	$stmt = $this->con->prepare("UPDATE users SET nickname=?, email=?, description=?, twitch=?, mixer=?, psn=?, xbox=?, steam=?, clan_tag=?, youtube=?, instagram=?, discord=? WHERE username=?");
-                			$stmt->bind_param("sssssssssssss", $nickname,$email,$bio,$twitch,$mixer,$psn,$xbox,$steam,$clantag,$youtube,$instagram,$discord_server,$username);
-                			$stmt->execute();
-                    		return 1;
-                    	}else{
-                    	    return 2;
-                    	}
-    	}
-            	}else{
-            	    return 4;
-            	}
-        	}else{
-        		return 6;
-        	}
-    }*/
-    /* public function updateUserPass($username, $new_password, $old_password_1, $old_password_2){
-                
-        	$new_password = strip_tags($new_password);
-        	$old_password_1 = strip_tags($old_password_1);
-        	$old_password_2 = strip_tags($old_password_2);
-            
-            $stmt2 = $this->con->prepare("SELECT password FROM users WHERE username=?");
-            $stmt2->bind_param("s",$username);
-            $stmt2->execute();
-            $stmt2->bind_result($db_password);
-            $stmt2->fetch();
-            $stmt2->close();
-            
-            if(password_verify($old_password_2, $db_password)){
-    				if($old_password_1 == $old_password_2) {
-    					if(strlen($new_password) <= 4) {
-    						return 2;
-    					}else{
-    						$new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-    						$stmt = $this->con->prepare("UPDATE users SET password=? WHERE username=?");
-                			$stmt->bind_param("ss",$new_password_hash,$username); //was $password
-                			$stmt->execute();
-                            $stmt->close();
-    						return 1;
-    					}
-    				}
-    				else {
-    					return 3;
-    				}
-    		}
-    		else {
-    			return 4;
-    		}
-                
-    }     */
-    
-    /* private function isUserExist($username, $email) {
-        $stmt = $this->con->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
-        $stmt->bind_param("ss", $username, $email);
-        $stmt->execute();
-        $stmt->store_result();
-        return $stmt->num_rows > 0;
-    } */
