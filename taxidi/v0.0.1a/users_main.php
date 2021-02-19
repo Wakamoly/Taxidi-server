@@ -187,6 +187,52 @@ $app->post('/storefcmtoken', function () use ($app) {
     echoResponse(200, $response);
 });
  
+// This will get all home view stuff for drivers
+$app->post('/gethomeinfo', function () use ($app) {
+    verifyRequiredParams(array('username', 'user_id', 'last_news_id', 'last_log_id'));
+
+    $username = $app->request()->post('username');
+    $user_id = $app->request()->post('user_id');
+    $last_news_id = $app->request()->post('last_news_id');
+    $last_log_id = $app->request()->post('last_log_id');
+
+    $headers = getallheaders();
+    $auth_token = $headers['Authorization'];
+
+    $response = array();
+    $db = new DbOperations();
+    if($db->userOnline($user_id, $auth_token)){
+        $top_result = $db->userHomeTopDetails($user_id, $username);
+        $log_result = $db->homeLogDetails($user_id, $username, $last_log_id);
+        $news_result = $db->homeNewsDetails($user_id, $username, $last_news_id);
+
+        if($top_result != false && $log_result != false && $news_result != false){
+			$response['error'] = false;
+            $response['code'] = "0002";
+            $response['top_result'] = $top_result;
+            // list
+            $response['log_result'] = $log_result;
+            // list
+            $response['news_result'] = $news_result;
+		} else {
+			$response['error'] = true;
+            $response['code'] = "1020";
+            $response['top_result'] = null;
+            $response['log_result'] = null;
+            $response['news_result'] = null;
+        }
+
+    } else {
+        $response['error'] = true; 
+        $response['code'] = "1017";
+        $response['top_result'] = null;
+        $response['log_result'] = null;
+        $response['news_result'] = null;
+    }
+
+    echoResponse(200, $response);
+});
+ 
 //This will remove the FCM token from the database
 $app->post('/removefcmtoken', function () use ($app) {
     verifyRequiredParams(array('token', 'username', 'user_id'));

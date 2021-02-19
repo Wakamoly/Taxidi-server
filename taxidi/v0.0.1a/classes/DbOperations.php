@@ -392,7 +392,7 @@ class DbOperations {
     }
 
     // Remove FCM token in general FCM key table
-    public function removeFCMRow($username, $user_id, $token){
+    public function removeFCMToken($username, $user_id, $token){
         $stmt = $this->con->prepare("SELECT 
                     `user_fcm_tokens`.`id`
                 FROM 
@@ -483,6 +483,92 @@ class DbOperations {
             $stmt->close();
             return true;
         } else return false;
+    }
+
+    public function userHomeTopDetails($user_id, $username) {
+        $stmt = $this->con->prepare("SELECT verified, num_shipped FROM users WHERE `user_id` = ? AND `username` = ? LIMIT 1");
+        $stmt->bind_param("is", $user_id, $username);
+        if($stmt->execute()){
+            $stmt->bind_result($verified, $numshipped);
+            $stmt->fetch();
+            $stmt->close();
+            $details['verified'] = $verified; 
+            $details['numshipped'] = $numshipped;
+            return $details;
+        } else {
+            error_log("DBOP-userHomeTopDetails error -> $user_id, $username");
+            return false;
+        }
+    }
+
+    public function homeLogDetails($user_id, $username, $last_log_id) {
+        $stmt = $this->con->prepare("SELECT	
+            `id`,
+            `text`,
+            `active`
+        FROM
+            `home_log`
+        WHERE
+            `home_log`.`username` = ?
+        AND
+            id > ?
+        ORDER BY
+            id DESC"); 
+
+        $stmt->bind_param("si",$username, $last_log_id);
+        $stmt->execute();
+        $stmt->bind_result($id, $text, $active);
+        $details = array(); 
+        while($stmt->fetch()){
+            $temp = array();
+            $temp['id'] = $id;
+            $temp['text'] = $text; 
+            $temp['active'] = $active;
+            array_push($details, $temp);
+        }
+        $stmt->close();
+        return $details;
+    }
+
+    public function homeNewsDetails($user_id, $username, $last_news_id) {
+        $stmt = $this->con->prepare("SELECT	
+            home_news.id,
+            home_news.username,
+            home_news.display_name,
+            home_news.title,
+            home_news.description,
+            home_news.date,
+            users.id,
+            users.profile_pic
+        FROM
+        home_news
+        LEFT JOIN
+            users
+        ON
+            home_news.username = users.username
+        WHERE
+            home_news.id > ?
+        ORDER BY
+            home_news.id DESC"); 
+
+        $stmt->bind_param("i", $last_news_id);
+        $stmt->execute();
+        $stmt->bind_result($id, $news_username, $display_name, $title, $desc, $date, $news_user_id, $profile_pic);
+        $details = array(); 
+        while($stmt->fetch()){            
+            $temp = array();
+            $temp['id'] = $id;
+            $temp['news_username'] = $news_username; 
+            $temp['display_name'] = $display_name; 
+            $temp['title'] = $title; 
+            $temp['desc'] = $desc; 
+            $temp['date'] = $date; 
+            $temp['news_user_id'] = $news_user_id; 
+            $temp['profile_pic'] = $profile_pic;
+            array_push($details, $temp);
+        }
+        $stmt->close();
+        return $details;
     }
 	
 }
