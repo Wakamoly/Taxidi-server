@@ -153,7 +153,78 @@ class Notifications {
         }
     }
     
+	public function getNotificationTokens($usernames){
+		$notiTokens = array();
+		if(is_array($usernames)){
+			$orMessage = "";
+			for ($i = 0; $i < count($usernames); $i++)  {
+				if ($i == 0){
+					$orMessage .= "username='".$usernames[$i]."'";
+				}else{
+					$orMessage .= " OR username='".$usernames[$i]."'";
+				}
+			}
+			$stmt = $this->con->prepare("SELECT token FROM user_fcm_tokens WHERE $orMessage AND active = 1");
+			$stmt->execute();
+			$stmt->bind_result($token);
+			while($stmt->fetch()){
+				if($token != ""){
+					array_push($notiTokens, $token);
+				}
+			}
+			$stmt->close();
+			return $notiTokens;
+		}else{
+			$stmt = $this->con->prepare("SELECT token FROM user_fcm_tokens WHERE username = ? AND active = 1");
+			$stmt->bind_param("s",$usernames);
+			$stmt->execute();
+			$stmt->bind_result($token);
+			while($stmt->fetch()){
+				if($token != ""){
+					array_push($notiTokens, $token);
+				}
+			}
+			$stmt->close();
+			return $notiTokens;
+		}
+		return false;
+	}
 	
+	public function pushNotiNew($notification, $notiTokens){
+        $firebase_api = "AAAAHfS5vBE:APA91bGLE4VdewsKb5njZ_ko2aVm4HxwWIy7LYEgNVsqO2ps1QAawsKwG0NRsUCwtpyiQmVSUtR_KrwjxrhlC8hha_Y-XpewTrSIznFKNwZOaZiksoVOGmMSGtmrmEpme_BHwimwMEr1";
+        $requestData = $notification->getNotification();
+        $fields = array();
+		$fields['data'] = $requestData;
+		if(is_array($notiTokens)){
+			if(count($notiTokens) > 1000){
+				$firstNotiTokens = array_slice($notiTokens, 0, 1000);
+				$secondNotiTokens = array_slice($notiTokens, 1000);
+				$this->pushNotiNew($notification, $secondNotiTokens);
+				$fields['registration_ids'] = $firstNotiTokens;
+			}else{
+				$fields['registration_ids'] = $notiTokens;
+			}
+		}else{
+			$fields['to'] = $notiTokens;
+		}
+        $url = 'https://fcm.googleapis.com/fcm/send';
+        $headers = array(
+            'Authorization: key=' . $firebase_api,
+            'Content-Type: application/json'
+        );
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        $result = curl_exec($ch);
+        if($result === FALSE){
+            die('Curl failed: ' . curl_error($ch));
+        }
+        curl_close($ch);
+	}
     
 	
 }

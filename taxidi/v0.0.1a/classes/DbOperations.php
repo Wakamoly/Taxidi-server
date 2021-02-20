@@ -486,7 +486,7 @@ class DbOperations {
     }
 
     public function userHomeTopDetails($user_id, $username) {
-        $stmt = $this->con->prepare("SELECT verified, num_shipped FROM users WHERE `user_id` = ? AND `username` = ? LIMIT 1");
+        $stmt = $this->con->prepare("SELECT verified, num_shipped FROM users WHERE `id` = ? AND `username` = ? LIMIT 1");
         $stmt->bind_param("is", $user_id, $username);
         if($stmt->execute()){
             $stmt->bind_result($verified, $numshipped);
@@ -515,7 +515,7 @@ class DbOperations {
         ORDER BY
             id DESC"); 
 
-        $stmt->bind_param("si",$username, $last_log_id);
+        $stmt->bind_param("si", $username, $last_log_id);
         $stmt->execute();
         $stmt->bind_result($id, $text, $active);
         $details = array(); 
@@ -541,7 +541,7 @@ class DbOperations {
             users.id,
             users.profile_pic
         FROM
-        home_news
+            home_news
         LEFT JOIN
             users
         ON

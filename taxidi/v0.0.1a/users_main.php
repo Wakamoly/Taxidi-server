@@ -206,13 +206,11 @@ $app->post('/gethomeinfo', function () use ($app) {
         $log_result = $db->homeLogDetails($user_id, $username, $last_log_id);
         $news_result = $db->homeNewsDetails($user_id, $username, $last_news_id);
 
-        if($top_result != false && $log_result != false && $news_result != false){
+        if($top_result != false){
 			$response['error'] = false;
             $response['code'] = "0002";
             $response['top_result'] = $top_result;
-            // list
             $response['log_result'] = $log_result;
-            // list
             $response['news_result'] = $news_result;
 		} else {
 			$response['error'] = true;
